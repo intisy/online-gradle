@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Main class.
  */
-class Main implements org.gradle.api.Plugin<Project> {
+public class Main implements org.gradle.api.Plugin<Project> {
 	/**
 	 * Applies all the project stuff.
 	 */
@@ -32,27 +32,4 @@ class Main implements org.gradle.api.Plugin<Project> {
 			project.apply(spec -> spec.from(file));
 		});
     }
-	class UsesExtension {
-		private final List<String> messages = new ArrayList<>();
-		private ActionCallback callback;
-
-		public List<String> getMessages() {
-			return messages;
-		}
-
-		public void setMessage(String message) {
-			messages.add(message);
-			if (callback != null) {
-				callback.execute(message);
-			}
-		}
-
-		public void setCallback(ActionCallback callback) {
-			this.callback = callback;
-		}
-
-		interface ActionCallback {
-			void execute(String message);
-		}
-	}
 }

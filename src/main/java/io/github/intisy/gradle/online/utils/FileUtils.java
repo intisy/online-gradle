@@ -5,7 +5,7 @@ import java.net.URL;
 
 public class FileUtils {
     /**
-     * download a file
+     * download file from url {@param fileURL} and return the file {@return file}
      */
     public static File downloadFile(String fileURL) {
         File jar = new File(GradleUtils.getGradleHome().toFile(), fileURL);

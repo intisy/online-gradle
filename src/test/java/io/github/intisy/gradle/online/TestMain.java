@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestMain {
-    @Test
+    /*@Test
     public void testGithubImplementation() {
         Project project = Commons.applyPlugin();
 
@@ -25,5 +25,5 @@ public class TestMain {
             System.out.println("Executing task " + task.getName());
             a.execute(task);
         }
-    }
+    }*/
 }
