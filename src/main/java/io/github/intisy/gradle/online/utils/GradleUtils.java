@@ -1,4 +1,4 @@
-package io.github.intisy.utils;
+package io.github.intisy.gradle.online.utils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,6 +9,6 @@ public class GradleUtils {
      */
     public static Path getGradleHome() {
         String userHome = System.getProperty("user.home");
-        return Paths.get(userHome, ".gradle", "caches", "github");
+        return Paths.get(userHome, ".gradle", "caches", "online");
     }
 }

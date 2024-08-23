@@ -1,4 +1,4 @@
-package io.github.intisy;
+package io.github.intisy.gradle.online;
 
 import org.gradle.api.Project;
 import org.gradle.testfixtures.ProjectBuilder;
@@ -6,7 +6,7 @@ import org.gradle.testfixtures.ProjectBuilder;
 public class Commons {
     public static Project applyPlugin() {
         Project project = ProjectBuilder.builder().withName("hello-world").build();
-        project.getPluginManager().apply(Plugin.class);
+        project.getPluginManager().apply(Main.class);
         return project;
     }
 }

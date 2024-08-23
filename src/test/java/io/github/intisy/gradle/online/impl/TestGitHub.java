@@ -1,4 +1,4 @@
-package io.github.intisy.impl;
+package io.github.intisy.gradle.online.impl;
 
 import org.junit.jupiter.api.Test;
 

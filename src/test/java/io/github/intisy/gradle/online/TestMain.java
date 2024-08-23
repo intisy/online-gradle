@@ -1,4 +1,4 @@
-package io.github.intisy;
+package io.github.intisy.gradle.online;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-public class TestPlugin {
+public class TestMain {
     @Test
     public void testGithubImplementation() {
         Project project = Commons.applyPlugin();
