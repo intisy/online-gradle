@@ -11,6 +11,7 @@ public class FileUtils {
         File jar = new File(GradleUtils.getGradleHome().toFile(), fileURL);
         if (jar.exists())
             jar.delete();
+        System.out.println("Downloading " + fileURL + " to " + jar.getAbsolutePath());
         try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(jar)) {
             byte[] dataBuffer = new byte[1024];
