@@ -21,9 +21,10 @@ public class FileUtils {
         }
     }
     public static File downloadFile(String fileURL) {
-        File jar = new File(GradleUtils.getGradleHome().toFile(), generateUniqueString(fileURL));
-        if (jar.exists())
-            jar.delete();
+        File folder = GradleUtils.getGradleHome().toFile();
+        File jar = new File(folder, generateUniqueString(fileURL));
+        if (folder.exists())
+            folder.delete();
         System.out.println("Downloading " + fileURL + " to " + jar.getAbsolutePath());
         try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(jar)) {
