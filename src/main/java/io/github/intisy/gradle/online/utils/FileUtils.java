@@ -22,7 +22,7 @@ public class FileUtils {
     }
     public static File downloadFile(String fileURL) {
         File folder = GradleUtils.getGradleHome().toFile();
-        if (folder.exists())
+        if (!folder.exists())
             folder.delete();
         File jar = new File(folder, generateUniqueString(fileURL));
         System.out.println("Downloading " + fileURL + " to " + jar.getAbsolutePath());
