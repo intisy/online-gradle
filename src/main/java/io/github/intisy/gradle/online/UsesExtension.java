@@ -1,24 +1,20 @@
 package io.github.intisy.gradle.online;
 
-import io.github.intisy.gradle.online.utils.FileUtils;
-import org.gradle.api.Project;
-
-import java.io.File;
+import org.gradle.api.model.ObjectFactory;
+import javax.inject.Inject;
+import java.util.ArrayList;
+import java.util.List;
 
 public class UsesExtension {
-    private Project project;
 
-    public UsesExtension() {
-        this.project = null;
+    private final List<String> strings;
+
+    @Inject
+    public UsesExtension(ObjectFactory objects) {
+        this.strings = objects.property(ArrayList.class).get();
     }
 
-    public void setProject(Project project) {
-        this.project = project;
-    }
-
-    public void uses(String scriptPath) {
-        System.out.println("Called with: " + scriptPath);
-//        File file = FileUtils.downloadFile(scriptPath);
-//        project.apply(spec -> spec.from(file));
+    public List<String> getStrings() {
+        return strings;
     }
 }
