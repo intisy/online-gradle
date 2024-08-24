@@ -20,7 +20,6 @@ public class UsesExtension {
     public void processUrls(Logger logger, Project project) {
         if (urls != null && !urls.isEmpty()) {
             urls.forEach(url -> {
-                logger.lifecycle("Applying gradle file from URL: " + url);
                 File file = FileUtils.downloadFile(url);
                 project.apply(spec -> spec.from(file));
             });
