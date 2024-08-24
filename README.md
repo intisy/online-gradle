@@ -8,13 +8,30 @@ Online Gradle allows you to use build.gradle files which are not located on your
 
 ## Usage
 
-You can add the plugin like this and add as many codeartifact repositories, as you want:
+Using the plugins DSL:
 
+```groovy
+plugins {
+  id "io.github.intisy.intisy/online-gradle" version "1.3.4"
+}
+```
 
+Using legacy plugin application:
 
-Or to add repositories to the Publishing plugin:
+```groovy
+buildscript {
+  repositories {
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath "io.github.intisy:intisy/online-gradle:1.3.4"
+  }
+}
 
-
+apply plugin: "io.github.intisy.intisy/online-gradle"
+```
 
 Once you have the plugin installed you can use it like so:
 
@@ -22,6 +39,7 @@ Once you have the plugin installed you can use it like so:
 ext {
     main = "${group}.Main"
 }
+
 online {
     urls = [
             'https://raw.githubusercontent.com/intisy/gradle-clips/main/shadowJar.gradle'
@@ -32,4 +50,3 @@ online {
 ## License
 
 [![Apache License 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-```
