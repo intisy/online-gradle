@@ -17,9 +17,10 @@ public class Main implements org.gradle.api.Plugin<Project> {
 	 * Applies all the project stuff.
 	 */
     public void apply(Project project) {
-		project.getExtensions().create("myPluginExtension", UsesExtension.class);
+		UsesExtension extension = project.getExtensions().create("uses", UsesExtension.class);
+		project.afterEvaluate(proj -> extension.processUrls(proj.getLogger()));
 
-		project.getTasks().create("listUses", task -> {
+		/*project.getTasks().create("listUses", task -> {
 			task.doLast(p -> {
                 UsesExtension extension = project.getExtensions().getByType(UsesExtension.class);
                 List<String> strings = extension.getStrings();
@@ -30,6 +31,6 @@ public class Main implements org.gradle.api.Plugin<Project> {
             });
 			task.setGroup("online");
 			task.setDescription("Lists all used online gradle files.");
-		});
+		});*/
     }
 }
