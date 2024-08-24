@@ -11,7 +11,7 @@ public class UsesExtension {
 
     @Inject
     public UsesExtension(ObjectFactory objects) {
-        this.strings = objects.property(ArrayList.class).get();
+        this.strings = objects.listProperty(String.class).get();
     }
 
     public List<String> getStrings() {

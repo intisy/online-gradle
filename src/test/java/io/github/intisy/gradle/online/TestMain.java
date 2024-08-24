@@ -8,13 +8,11 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class TestMain {
-    /*@Test
-    public void testGithubImplementation() {
-        Project project = Commons.applyPlugin();
-
-		project.getDependencies().add("githubImplementation", "Blizzity:SimpleLogger:1.12.7");
-    }
     @Test
+    public void testMain() {
+        Project project = Commons.applyPlugin();
+    }
+    /*@Test
     public void testPrintGithubDependenciesTask() {
         Project project = Commons.applyPlugin();
 
