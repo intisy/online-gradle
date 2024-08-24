@@ -1,6 +1,6 @@
 # Online Gradle
 
-Archives containing JAR files are available as [releases](https://github.com/Blizzity/intisy/online-gradle/releases).
+Archives containing JAR files are available as [releases](https://github.com/intisy/intisy/online-gradle/releases).
 
 ## What is Online Gradle?
 
@@ -12,7 +12,7 @@ Using the plugins DSL:
 
 ```groovy
 plugins {
-  id "io.github.intisy.intisy/online-gradle" version "1.3.4"
+    id "io.github.intisy.intisy/online-gradle" version "1.3.6"
 }
 ```
 
@@ -20,14 +20,14 @@ Using legacy plugin application:
 
 ```groovy
 buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
-  }
-  dependencies {
-    classpath "io.github.intisy:intisy/online-gradle:1.3.4"
-  }
+    dependencies {
+        classpath "io.github.intisy:intisy/online-gradle:1.3.6"
+    }
 }
 
 apply plugin: "io.github.intisy.intisy/online-gradle"
