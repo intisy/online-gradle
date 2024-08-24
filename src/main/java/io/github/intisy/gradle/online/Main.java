@@ -17,19 +17,6 @@ public class Main implements org.gradle.api.Plugin<Project> {
 	 */
     public void apply(Project project) {
 		UsesExtension extension = project.getExtensions().create("uses", UsesExtension.class);
-		project.afterEvaluate(p -> {
-			Task myTask = p.getTasks().create("listUses", task -> {
-				if (!extension.getMessages().isEmpty()) {
-					System.out.println("All online files:");
-					extension.getMessages().forEach(System.out::println);
-				}
-			});
-			myTask.setGroup("online");
-			myTask.setDescription("Lists all used online gradle files.");
-		});
-		extension.setCallback(scriptPath -> {
-			File file = FileUtils.downloadFile(scriptPath);
-			project.apply(spec -> spec.from(file));
-		});
+		extension.setProject(project);
     }
 }

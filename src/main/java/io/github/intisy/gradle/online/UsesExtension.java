@@ -1,28 +1,25 @@
 package io.github.intisy.gradle.online;
 
+import io.github.intisy.gradle.online.utils.FileUtils;
+import org.gradle.api.Project;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UsesExtension {
-    private final List<String> messages = new ArrayList<>();
-    private ActionCallback callback;
+    private Project project;
 
-    public List<String> getMessages() {
-        return messages;
+    public UsesExtension() {
+        this.project = null;
     }
 
-    public void setMessage(String message) {
-        messages.add(message);
-        if (callback != null) {
-            callback.execute(message);
-        }
+    public void setProject(Project project) {
+        this.project = project;
     }
 
-    public void setCallback(ActionCallback callback) {
-        this.callback = callback;
-    }
-
-    interface ActionCallback {
-        void execute(String message);
+    public void uses(String scriptPath) {
+        File file = FileUtils.downloadFile(scriptPath);
+        project.apply(spec -> spec.from(file));
     }
 }
