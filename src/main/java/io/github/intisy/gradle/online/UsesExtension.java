@@ -33,17 +33,22 @@ public class UsesExtension {
     public void processUrls(Project project) {
         if (urls != null && !urls.isEmpty()) {
             urls.forEach(url -> {
-                String[] split = url.split(":");
-                if (split.length == 3) {
-                    String version = split[split.length-1];
-                    url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
-                }
+                url = processUrl(url);
                 File file = FileUtils.downloadFile(url, ".gradle");
                 project.apply(spec -> spec.from(file));
             });
         } else {
             project.getLogger().lifecycle("No URLs provided.");
         }
+    }
+
+    private String processUrl(String url) {
+        String[] split = url.split(":");
+        if (split.length == 3) {
+            String version = split[split.length-1];
+            url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
+        }
+        return url;
     }
 
     public void processPresets(Project project) {
@@ -53,6 +58,7 @@ public class UsesExtension {
                     File preset = FileUtils.downloadFile(url, ".preset");
                     List<String> lines = Files.readLines(preset, Charset.defaultCharset());
                     for (String line : lines) {
+                        line = processUrl(line);
                         File file = FileUtils.downloadFile(line, ".gradle");
                         project.apply(spec -> spec.from(file));
                     }
