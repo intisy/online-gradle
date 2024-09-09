@@ -20,11 +20,11 @@ public class FileUtils {
             throw new RuntimeException("SHA-256 algorithm not found", var3);
         }
     }
-    public static File downloadFile(String fileURL) {
+    public static File downloadFile(String fileURL, String fileExtension) {
         File folder = GradleUtils.getGradleHome().toFile();
         if (!folder.exists())
             folder.mkdirs();
-        File jar = new File(folder, generateUniqueString(fileURL));
+        File jar = new File(folder, generateUniqueString(fileURL) + fileExtension);
         if (jar.exists())
             jar.delete();
         try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
