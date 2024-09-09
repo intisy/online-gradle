@@ -33,6 +33,11 @@ public class UsesExtension {
     public void processUrls(Project project) {
         if (urls != null && !urls.isEmpty()) {
             urls.forEach(url -> {
+                String[] split = url.split(":");
+                if (split.length == 3) {
+                    String version = split[split.length-1];
+                    url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
+                }
                 File file = FileUtils.downloadFile(url, ".gradle");
                 project.apply(spec -> spec.from(file));
             });
