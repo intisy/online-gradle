@@ -13,6 +13,15 @@ import java.util.List;
 public class UsesExtension {
     private List<String> urls;
     private List<String> presets;
+    private boolean debug;
+
+    public boolean getDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     public List<String> getUrls() {
         return urls;
@@ -37,7 +46,7 @@ public class UsesExtension {
                 File file = FileUtils.downloadFile(url, ".gradle");
                 project.apply(spec -> spec.from(file));
             });
-        } else {
+        } else if (debug) {
             project.getLogger().lifecycle("No URLs provided.");
         }
     }
