@@ -105,6 +105,8 @@ public class UsesExtension {
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
+            if (debug || this.debug)
+                printFileContent(file);
             log("Downloaded " + fileURL + " to " + file, debug);
             return file;
         } catch (IOException e) {
@@ -115,5 +117,16 @@ public class UsesExtension {
             e.printStackTrace();
         }
         throw new RuntimeException("Could not download file");
+    }
+
+    public static void printFileContent(File file) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {
+            System.err.println("An error occurred while reading the file: " + e.getMessage());
+        }
     }
 }
