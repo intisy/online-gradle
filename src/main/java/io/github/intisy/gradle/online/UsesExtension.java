@@ -97,7 +97,7 @@ public class UsesExtension {
         boolean debug = !file.exists();
         try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-            log("Downloading " + fileURL + " to " + folder, debug);
+            log("Downloading " + fileURL + " to " + file, debug);
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
             if (file.exists())
@@ -105,7 +105,7 @@ public class UsesExtension {
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
-            log("Downloaded " + fileURL + " to " + folder, debug);
+            log("Downloaded " + fileURL + " to " + file, debug);
             return file;
         } catch (IOException e) {
             if (file.exists()) {
