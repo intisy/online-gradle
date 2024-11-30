@@ -1,15 +1,17 @@
 package io.github.intisy.gradle.online;
 
 import io.github.intisy.gradle.online.utils.FileUtils;
+import io.github.intisy.gradle.online.utils.GradleUtils;
 import org.gradle.api.Project;
-import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.impldep.com.google.common.io.Files;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class UsesExtension {
     private List<String> urls;
     private List<String> presets;
@@ -39,15 +41,24 @@ public class UsesExtension {
         this.presets = presets;
     }
 
+    public void log(String message) {
+        log(message, false);
+    }
+    public void log(String message, boolean debug) {
+        LogLevel logLevel = Main.project.getGradle().getStartParameter().getLogLevel();
+        if (this.debug || debug || logLevel.equals(LogLevel.INFO) || logLevel.equals(LogLevel.DEBUG))
+            System.out.println(message);
+    }
+
     public void processUrls(Project project) {
         if (urls != null && !urls.isEmpty()) {
             urls.forEach(url -> {
                 url = processUrl(url);
-                File file = FileUtils.downloadFile(url, ".gradle");
+                File file = downloadFile(url, ".gradle");
                 project.apply(spec -> spec.from(file));
             });
-        } else if (debug) {
-            project.getLogger().lifecycle("No URLs provided.");
+        } else {
+            log("No URLs provided.");
         }
     }
 
@@ -64,11 +75,11 @@ public class UsesExtension {
         if (presets != null && !presets.isEmpty()) {
             presets.forEach(url -> {
                 try {
-                    File preset = FileUtils.downloadFile(url, ".preset");
+                    File preset = downloadFile(url, ".preset");
                     List<String> lines = Files.readLines(preset, Charset.defaultCharset());
                     for (String line : lines) {
                         line = processUrl(line);
-                        File file = FileUtils.downloadFile(line, ".gradle");
+                        File file = downloadFile(line, ".gradle");
                         project.apply(spec -> spec.from(file));
                     }
                 } catch (IOException e) {
@@ -76,5 +87,33 @@ public class UsesExtension {
                 }
             });
         }
+    }
+
+    public File downloadFile(String fileURL, String fileExtension) {
+        File folder = GradleUtils.getGradleHome().toFile();
+        if (!folder.exists())
+            folder.mkdirs();
+        File file = new File(folder, FileUtils.generateUniqueString(fileURL) + fileExtension);
+        boolean debug = !file.exists();
+        try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
+             FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            log("Downloading " + fileURL + " to " + folder, debug);
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            if (file.exists())
+                file.delete();
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+            log("Downloaded " + fileURL + " to " + folder, debug);
+            return file;
+        } catch (IOException e) {
+            if (file.exists()) {
+                System.out.println("Could not get the file, using existing one");
+                return file;
+            }
+            e.printStackTrace();
+        }
+        throw new RuntimeException("Could not download file");
     }
 }

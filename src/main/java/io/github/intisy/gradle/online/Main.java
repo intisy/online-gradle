@@ -8,10 +8,13 @@ import java.util.List;
  * Main class.
  */
 public class Main implements org.gradle.api.Plugin<Project> {
+	public static Project project;
+
 	/**
 	 * Applies all the project stuff.
 	 */
     public void apply(Project project) {
+		Main.project = project;
 		UsesExtension extension = project.getExtensions().create("online", UsesExtension.class);
 		project.afterEvaluate(proj -> {
 			extension.processUrls(proj);
