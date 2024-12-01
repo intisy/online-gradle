@@ -74,12 +74,9 @@ public class UsesExtension {
     public void processPresets(Project project) {
         if (presets != null && !presets.isEmpty()) {
             presets.forEach(url -> {
-                System.out.println(1);
-                File preset = downloadFile(url, ".preset");
-                System.out.println(2);
                 try {
+                    File preset = downloadFile(url, ".preset");
                     List<String> lines = Files.readLines(preset, Charset.defaultCharset());
-                    System.out.println(3);
                     for (String line : lines) {
                         line = processUrl(line);
                         File file = downloadFile(line, ".gradle");
