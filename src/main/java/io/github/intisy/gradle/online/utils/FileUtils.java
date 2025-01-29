@@ -1,7 +1,5 @@
 package io.github.intisy.gradle.online.utils;
 
-import java.io.*;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

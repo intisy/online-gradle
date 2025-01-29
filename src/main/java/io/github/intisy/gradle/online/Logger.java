@@ -23,7 +23,7 @@ public class Logger {
     }
 
     public void debug(String message) {
-        LogLevel logLevel = Main.project.getGradle().getStartParameter().getLogLevel();
+        LogLevel logLevel = project.getGradle().getStartParameter().getLogLevel();
         if (extension.isDebug() || logLevel.equals(LogLevel.INFO) || logLevel.equals(LogLevel.DEBUG)) {
             project.getLogger().lifecycle(message);
         }
