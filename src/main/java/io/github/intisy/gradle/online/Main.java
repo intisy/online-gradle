@@ -16,6 +16,7 @@ import java.util.List;
 /**
  * @author Finn Birich
  */
+@SuppressWarnings("unused")
 public class Main implements org.gradle.api.Plugin<Project> {
     /**
      * Applies the plugin to the given Gradle project. This method sets up the necessary tasks and configurations
@@ -80,24 +81,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
 	private void updateUrl(Logger logger, String url, Project project, UsesExtension extension) {
 		url = processUrl(url);
 		File file = getUrlFile(url);
-		boolean downloadFile = !file.exists();
-		if (extension.isAutoUpdate()) {
-			if (extension.getUpdateDelay() > 0) {
-				try {
-					BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-					Instant creationTime = attributes.creationTime().toInstant();
-					Instant now = Instant.now();
-					long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
-					logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
-					downloadFile = differenceInSeconds >= extension.getUpdateDelay();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			} else {
-				downloadFile = true;
-			}
-		}
-		if (downloadFile) {
+		if (shouldDownloadFile(file, extension, logger)) {
 			if (file.exists())
 				logger.log("Updating " + url + " at " + file);
 			else
@@ -106,6 +90,40 @@ public class Main implements org.gradle.api.Plugin<Project> {
 		}
 		project.apply(spec -> spec.from(file));
 	}
+    
+    /**
+     * Determines whether a file should be downloaded based on its existence, update delay, and auto-update settings.
+     *
+     * @param file       The file to be checked for download.
+     * @param extension  The extension containing the configuration, including auto-update settings and update delay.
+     * @param logger     The logger used to log messages during the process.
+     * @return {@code true} if the file should be downloaded, {@code false} otherwise.
+     *         If the file does not exist, it will be downloaded.
+     *         If auto-update is enabled and the update delay is greater than 0,
+     *         the file will be downloaded if the difference between its creation time and the current time is greater than or equal to the update delay.
+     *         If auto-update is enabled and the update delay is 0, the file will always be downloaded.
+     *         If auto-update is disabled, the file will always be downloaded.
+     */
+    public boolean shouldDownloadFile(File file, UsesExtension extension, Logger logger) {
+        boolean downloadFile = !file.exists();
+        if (extension.isAutoUpdate()) {
+            if (extension.getUpdateDelay() > 0) {
+                try {
+                    BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+                    Instant creationTime = attributes.creationTime().toInstant();
+                    Instant now = Instant.now();
+                    long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
+                    logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
+                    downloadFile = differenceInSeconds >= extension.getUpdateDelay();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                downloadFile = true;
+            }
+        }
+        return downloadFile;
+    }
 
     /**
      * Processes the given URL by transforming it into a specific format if it matches a certain pattern.
@@ -138,10 +156,13 @@ public class Main implements org.gradle.api.Plugin<Project> {
         if (extension.getPresets() != null && !extension.getPresets().isEmpty()) {
             extension.getPresets().forEach(url -> {
                 try {
-                    File preset = downloadFile(logger, url);
-                    List<String> lines = Files.readLines(preset, Charset.defaultCharset());
-                    for (String line : lines) {
-                        updateUrl(logger, line, project, extension);
+                    File preset = getUrlFile(url);
+                    if (shouldDownloadFile(preset, extension, logger)) {
+                        downloadFile(logger, url, preset);
+                        List<String> lines = Files.readLines(preset, Charset.defaultCharset());
+                        for (String line : lines) {
+                            updateUrl(logger, line, project, extension);
+                        }
                     }
                 } catch (IOException e) {
                     throw new RuntimeException(e);
