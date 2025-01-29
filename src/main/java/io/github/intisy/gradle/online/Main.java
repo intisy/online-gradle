@@ -119,12 +119,12 @@ public class Main implements org.gradle.api.Plugin<Project> {
 	}
 
 	public void downloadFile(Logger logger, String fileURL, File file) {
+		if (file.exists() && !file.delete())
+			throw new RuntimeException("Failed to delete file: " + file);
 		try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
 			 FileOutputStream fileOutputStream = new FileOutputStream(file)) {
 			byte[] dataBuffer = new byte[1024];
 			int bytesRead;
-			if (file.exists() && !file.delete())
-				throw new RuntimeException("Failed to delete file: " + file);
 			while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
 				fileOutputStream.write(dataBuffer, 0, bytesRead);
 			}
