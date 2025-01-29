@@ -82,10 +82,6 @@ public class Main implements org.gradle.api.Plugin<Project> {
 		url = processUrl(url);
 		File file = getUrlFile(url);
 		if (shouldDownloadFile(file, extension, logger)) {
-			if (file.exists())
-				logger.log("Updating " + url + " at " + file);
-			else
-				logger.log("Downloading " + url + " to " + file);
 			downloadFile(logger, url, file);
 		}
 		project.apply(spec -> spec.from(file));
@@ -110,7 +106,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
             if (extension.getUpdateDelay() > 0) {
                 try {
                     BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-                    Instant creationTime = attributes.creationTime().toInstant();
+                    Instant creationTime = attributes.lastModifiedTime().toInstant();
                     Instant now = Instant.now();
                     long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
                     logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
@@ -207,22 +203,30 @@ public class Main implements org.gradle.api.Plugin<Project> {
      * The method uses a buffered input stream to read the file content and writes it to the local file system.
      *
      * @param logger  The Logger object used for logging the download status.
-     * @param fileURL The URL of the file to be downloaded as a String.
+     * @param url The URL of the file to be downloaded as a String.
      * @param file    The File object representing the local file where the downloaded content will be saved.
      * @throws RuntimeException If the existing file cannot be deleted, if there's an IO error during download,
      *                          or if the file cannot be downloaded and doesn't exist locally.
      */
-    public void downloadFile(Logger logger, String fileURL, File file) {
+    public void downloadFile(Logger logger, String url, File file) {
+        boolean update = file.exists();
+        if (update)
+            logger.log("Updating " + url + " at " + file);
+        else
+            logger.log("Downloading " + url + " to " + file);
         if (file.exists() && !file.delete())
             throw new RuntimeException("Failed to delete file: " + file);
-        try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
+        try (InputStream in = new BufferedInputStream(new URL(url).openStream());
              FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             byte[] dataBuffer = new byte[1024];
             int bytesRead;
             while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
                 fileOutputStream.write(dataBuffer, 0, bytesRead);
             }
-            logger.log("Downloaded " + fileURL + " to " + file);
+            if (update)
+                logger.debug("Updated " + url + " at " + file);
+            else
+                logger.debug("Downloaded " + url + " to " + file);
         } catch (IOException e) {
             if (file.exists()) {
                 throw new RuntimeException("Could not get the file, using existing one");
