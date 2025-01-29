@@ -41,6 +41,14 @@ public class Main implements org.gradle.api.Plugin<Project> {
 			task.setGroup("online");
 			task.setDescription("Lists all used online gradle files.");
 		});
+		project.getTasks().create("process", task -> {
+			task.doLast(proj -> {
+				processUrls(logger, project, extension);
+				processPresets(logger, project, extension);
+            });
+			task.setGroup("online");
+			task.setDescription("Download and process files");
+		});
     }
 	public void processUrls(Logger logger, Project project, UsesExtension extension) {
 		if (extension.getUrls() != null && !extension.getUrls().isEmpty()) {
