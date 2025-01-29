@@ -14,48 +14,69 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Main class.
+ * @author Finn Birich
  */
 public class Main implements org.gradle.api.Plugin<Project> {
-
-	/**
-	 * Applies all the project stuff.
-	 */
+    /**
+     * Applies the plugin to the given Gradle project. This method sets up the necessary tasks and configurations
+     * for processing online Gradle files and presets.
+     *
+     * @param project the Gradle project to which the plugin is applied. This project will be configured with
+     *                tasks to list and process online Gradle files.
+     */
     public void apply(Project project) {
-		UsesExtension extension = project.getExtensions().create("online", UsesExtension.class);
-		Logger logger = new Logger(extension, project);
-		project.afterEvaluate(proj -> {
-			processUrls(logger, proj, extension);
-			processPresets(logger, proj, extension);
-		});
-		project.getTasks().create("listUrls", task -> {
-			task.doLast(proj -> {
+        UsesExtension extension = project.getExtensions().create("online", UsesExtension.class);
+        Logger logger = new Logger(extension, project);
+        project.afterEvaluate(proj -> {
+            processUrls(logger, proj, extension);
+            processPresets(logger, proj, extension);
+        });
+        project.getTasks().create("listUrls", task -> {
+            task.doLast(proj -> {
                 List<String> strings = extension.getUrls();
-				logger.log("All online files:");
+                logger.log("All online files:");
                 for (String string : strings) {
                     logger.log(string);
                 }
             });
-			task.setGroup("online");
-			task.setDescription("Lists all used online gradle files.");
-		});
-		project.getTasks().create("process", task -> {
-			task.doLast(proj -> {
-				processUrls(logger, project, extension);
-				processPresets(logger, project, extension);
+            task.setGroup("online");
+            task.setDescription("Lists all used online gradle files.");
+        });
+        project.getTasks().create("process", task -> {
+            task.doLast(proj -> {
+                processUrls(logger, project, extension);
+                processPresets(logger, project, extension);
             });
-			task.setGroup("online");
-			task.setDescription("Download and process files");
-		});
+            task.setGroup("online");
+            task.setDescription("Download and process files");
+        });
     }
-	public void processUrls(Logger logger, Project project, UsesExtension extension) {
-		if (extension.getUrls() != null && !extension.getUrls().isEmpty()) {
-			extension.getUrls().forEach(url -> updateUrl(logger, url, project, extension));
-		} else {
-			logger.debug("No URLs provided.");
-		}
-	}
-
+    /**
+     * Processes the URLs specified in the given extension and updates or downloads the corresponding files.
+     *
+     * @param logger    the logger used to log messages during the process
+     * @param project   the Gradle project to which the plugin is applied
+     * @param extension the extension containing the configuration, including the list of URLs to process
+     */
+    public void processUrls(Logger logger, Project project, UsesExtension extension) {
+        if (extension.getUrls() != null && !extension.getUrls().isEmpty()) {
+            extension.getUrls().forEach(url -> updateUrl(logger, url, project, extension));
+        } else {
+            logger.debug("No URLs provided.");
+        }
+    }
+	
+	/**
+	 * Updates or downloads a file from the specified URL and applies it to the given Gradle project.
+	 * The method checks if the file needs to be downloaded based on its existence and the update delay
+	 * specified in the extension. If the file is outdated or does not exist, it downloads the file and
+	 * applies it to the project.
+	 *
+	 * @param logger    the logger used to log messages during the process
+	 * @param url       the URL of the file to be updated or downloaded
+	 * @param project   the Gradle project to which the file is applied
+	 * @param extension the extension containing the configuration, including auto-update settings and update delay
+	 */
 	private void updateUrl(Logger logger, String url, Project project, UsesExtension extension) {
 		url = processUrl(url);
 		File file = getUrlFile(url);
@@ -86,60 +107,106 @@ public class Main implements org.gradle.api.Plugin<Project> {
 		project.apply(spec -> spec.from(file));
 	}
 
-	private String processUrl(String url) {
-		String[] split = url.split(":");
-		if (split.length == 3) {
-			String version = split[split.length-1];
-			url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
-		}
-		return url;
-	}
+    /**
+     * Processes the given URL by transforming it into a specific format if it matches a certain pattern.
+     * If the URL contains three parts separated by colons, it modifies the second and third parts
+     * to replace certain characters and returns the modified URL.
+     *
+     * @param url the original URL to be processed. It is expected to be in the format of "part1:part2:part3".
+     * @return the processed URL. If the original URL contains three parts, the second part will have ".gradle"
+     *         replaced with "_" and the third part will have "." replaced with "_", followed by ".gradle".
+     *         If the URL does not match the expected pattern, it is returned unchanged.
+     */
+    private String processUrl(String url) {
+        String[] split = url.split(":");
+        if (split.length == 3) {
+            String version = split[split.length-1];
+            url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
+        }
+        return url;
+    }
 
-	public void processPresets(Logger logger, Project project, UsesExtension extension) {
-		if (extension.getPresets() != null && !extension.getPresets().isEmpty()) {
-			extension.getPresets().forEach(url -> {
-				try {
-					File preset = downloadFile(logger, url);
-					List<String> lines = Files.readLines(preset, Charset.defaultCharset());
-					for (String line : lines) {
-						updateUrl(logger, line, project, extension);
-					}
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			});
-		}
-	}
+    /**
+     * Processes the presets specified in the given extension and updates or downloads the corresponding files.
+     *
+     * @param logger    the logger used to log messages during the process
+     * @param project   the Gradle project to which the plugin is applied
+     * @param extension the extension containing the configuration, including the list of presets to process
+     *
+     */
+    public void processPresets(Logger logger, Project project, UsesExtension extension) {
+        if (extension.getPresets() != null && !extension.getPresets().isEmpty()) {
+            extension.getPresets().forEach(url -> {
+                try {
+                    File preset = downloadFile(logger, url);
+                    List<String> lines = Files.readLines(preset, Charset.defaultCharset());
+                    for (String line : lines) {
+                        updateUrl(logger, line, project, extension);
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        }
+    }
 
-	public File getUrlFile(String url) {
-		File folder = GradleUtils.getGradleHome().toFile();
-		if (!folder.exists() && !folder.mkdirs())
-			throw new RuntimeException("Failed to create directory: " + folder.getAbsolutePath());
-		return new File(folder, FileUtils.generateUniqueString(url) + ".gradle");
-	}
+    /**
+     * Generates a File object representing a unique file path for a given URL.
+     * This method creates a file in the Gradle home directory with a unique name
+     * based on the provided URL.
+     *
+     * @param url The URL string for which to generate a unique file path.
+     * @return A File object representing the unique file path for the given URL.
+     * @throws RuntimeException If the Gradle home directory cannot be created.
+     */
+    public File getUrlFile(String url) {
+        File folder = GradleUtils.getGradleHome().toFile();
+        if (!folder.exists() && !folder.mkdirs())
+            throw new RuntimeException("Failed to create directory: " + folder.getAbsolutePath());
+        return new File(folder, FileUtils.generateUniqueString(url) + ".gradle");
+    }
 
-	public File downloadFile(Logger logger, String fileURL) {
-		File file = getUrlFile(fileURL);
-		downloadFile(logger, fileURL, file);
-		return file;
-	}
+    /**
+     * Downloads a file from the specified URL and saves it to a unique file location.
+     *
+     * @param logger  The Logger object used for logging messages during the download process.
+     * @param fileURL The URL of the file to be downloaded.
+     * @return A File object representing the downloaded file on the local file system.
+     * @throws RuntimeException If there's an error during the download process.
+     */
+    public File downloadFile(Logger logger, String fileURL) {
+        File file = getUrlFile(fileURL);
+        downloadFile(logger, fileURL, file);
+        return file;
+    }
 
-	public void downloadFile(Logger logger, String fileURL, File file) {
-		if (file.exists() && !file.delete())
-			throw new RuntimeException("Failed to delete file: " + file);
-		try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
-			 FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-			byte[] dataBuffer = new byte[1024];
-			int bytesRead;
-			while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-				fileOutputStream.write(dataBuffer, 0, bytesRead);
-			}
-			logger.log("Downloaded " + fileURL + " to " + file);
-		} catch (IOException e) {
-			if (file.exists()) {
-				throw new RuntimeException("Could not get the file, using existing one");
-			} else
-				throw new RuntimeException("Could not download file");
-		}
-	}
+    /**
+     * Downloads a file from a specified URL and saves it to a local file.
+     * If the target file already exists, it attempts to delete it before downloading.
+     * The method uses a buffered input stream to read the file content and writes it to the local file system.
+     *
+     * @param logger  The Logger object used for logging the download status.
+     * @param fileURL The URL of the file to be downloaded as a String.
+     * @param file    The File object representing the local file where the downloaded content will be saved.
+     * @throws RuntimeException If the existing file cannot be deleted, if there's an IO error during download,
+     *                          or if the file cannot be downloaded and doesn't exist locally.
+     */
+    public void downloadFile(Logger logger, String fileURL, File file) {
+        if (file.exists() && !file.delete())
+            throw new RuntimeException("Failed to delete file: " + file);
+        try (InputStream in = new BufferedInputStream(new URL(fileURL).openStream());
+             FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            byte[] dataBuffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
+                fileOutputStream.write(dataBuffer, 0, bytesRead);
+            }
+            logger.log("Downloaded " + fileURL + " to " + file);
+        } catch (IOException e) {
+            if (file.exists()) {
+                throw new RuntimeException("Could not get the file, using existing one");
+            } else
+                throw new RuntimeException("Could not download file");
+        }
+    }
 }
