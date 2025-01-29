@@ -17,13 +17,11 @@ import java.util.List;
  * Main class.
  */
 public class Main implements org.gradle.api.Plugin<Project> {
-	public static Project project;
 
 	/**
 	 * Applies all the project stuff.
 	 */
     public void apply(Project project) {
-		Main.project = project;
 		UsesExtension extension = project.getExtensions().create("online", UsesExtension.class);
 		Logger logger = new Logger(extension, project);
 		project.afterEvaluate(proj -> {
@@ -52,38 +50,40 @@ public class Main implements org.gradle.api.Plugin<Project> {
     }
 	public void processUrls(Logger logger, Project project, UsesExtension extension) {
 		if (extension.getUrls() != null && !extension.getUrls().isEmpty()) {
-			extension.getUrls().forEach(url -> {
-				url = processUrl(url);
-				File file = getUrlFile(url);
-				boolean downloadFile = !file.exists();
-				if (extension.isAutoUpdate()) {
-					if (extension.getUpdateDelay() > 0) {
-						try {
-							BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-							Instant creationTime = attributes.creationTime().toInstant();
-							Instant now = Instant.now();
-							long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
-							logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
-							downloadFile = differenceInSeconds >= extension.getUpdateDelay();
-						} catch (IOException e) {
-							throw new RuntimeException(e);
-						}
-					} else {
-						downloadFile = true;
-					}
-				}
-				if (downloadFile) {
-					if (file.exists())
-						logger.log("Updating " + url + " at " + file);
-					else
-						logger.log("Downloading " + url + " to " + file);
-					downloadFile(logger, url, file);
-				}
-				project.apply(spec -> spec.from(file));
-			});
+			extension.getUrls().forEach(url -> updateUrl(logger, url, project, extension));
 		} else {
 			logger.debug("No URLs provided.");
 		}
+	}
+
+	private void updateUrl(Logger logger, String url, Project project, UsesExtension extension) {
+		url = processUrl(url);
+		File file = getUrlFile(url);
+		boolean downloadFile = !file.exists();
+		if (extension.isAutoUpdate()) {
+			if (extension.getUpdateDelay() > 0) {
+				try {
+					BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+					Instant creationTime = attributes.creationTime().toInstant();
+					Instant now = Instant.now();
+					long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
+					logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
+					downloadFile = differenceInSeconds >= extension.getUpdateDelay();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			} else {
+				downloadFile = true;
+			}
+		}
+		if (downloadFile) {
+			if (file.exists())
+				logger.log("Updating " + url + " at " + file);
+			else
+				logger.log("Downloading " + url + " to " + file);
+			downloadFile(logger, url, file);
+		}
+		project.apply(spec -> spec.from(file));
 	}
 
 	private String processUrl(String url) {
@@ -102,9 +102,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
 					File preset = downloadFile(logger, url);
 					List<String> lines = Files.readLines(preset, Charset.defaultCharset());
 					for (String line : lines) {
-						line = processUrl(line);
-						File file = downloadFile(logger, line);
-						project.apply(spec -> spec.from(file));
+						updateUrl(logger, line, project, extension);
 					}
 				} catch (IOException e) {
 					throw new RuntimeException(e);
