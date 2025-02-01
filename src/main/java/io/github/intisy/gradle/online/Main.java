@@ -153,8 +153,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
     private String processPresetUrl(String url) {
         String[] split = url.split(":");
         if (split.length == 3) {
-            String version = split[split.length-1];
-            url = split[0] + ":" + split[1].replace(".preset", "_") + version.replace(".", "_") + ".preset";
+            url = split[0] + ":" + split[1].replace(".preset", "_") + split[2].replace(".", "_") + ".preset";
         }
         return url;
     }
@@ -185,7 +184,8 @@ public class Main implements org.gradle.api.Plugin<Project> {
      */
     public void processPreset(Logger logger, Project project, UsesExtension extension, String url) {
         try {
-            File preset = getUrlFile(processPresetUrl(url));
+            url = processPresetUrl(url);
+            File preset = getUrlFile(url);
             if (shouldDownloadFile(preset, extension, logger)) {
                 downloadFile(logger, url, preset);
                 List<String> lines = Files.readLines(preset, Charset.defaultCharset());
