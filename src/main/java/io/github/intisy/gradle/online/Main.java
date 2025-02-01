@@ -29,12 +29,12 @@ public class Main implements org.gradle.api.Plugin<Project> {
         UsesExtension extension = project.getExtensions().create("online", UsesExtension.class);
         Logger logger = new Logger(extension, project);
         project.afterEvaluate(proj -> {
-            processUrls(logger, proj, extension);
+            processActions(logger, proj, extension);
             processPresets(logger, proj, extension);
         });
         project.getTasks().create("listUrls", task -> {
             task.doLast(proj -> {
-                List<String> strings = extension.getUrls();
+                List<String> strings = extension.getActions();
                 logger.log("All online files:");
                 for (String string : strings) {
                     logger.log(string);
@@ -45,7 +45,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
         });
         project.getTasks().create("process", task -> {
             task.doLast(proj -> {
-                processUrls(logger, project, extension);
+                processActions(logger, project, extension);
                 processPresets(logger, project, extension);
             });
             task.setGroup("online");
@@ -59,9 +59,9 @@ public class Main implements org.gradle.api.Plugin<Project> {
      * @param project   the Gradle project to which the plugin is applied
      * @param extension the extension containing the configuration, including the list of URLs to process
      */
-    public void processUrls(Logger logger, Project project, UsesExtension extension) {
-        if (extension.getUrls() != null && !extension.getUrls().isEmpty()) {
-            extension.getUrls().forEach(url -> updateUrl(logger, url, project, extension));
+    public void processActions(Logger logger, Project project, UsesExtension extension) {
+        if (extension.getActions() != null && !extension.getActions().isEmpty()) {
+            extension.getActions().forEach(url -> updateUrl(logger, url, project, extension));
         } else {
             logger.debug("No URLs provided.");
         }
@@ -79,7 +79,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
 	 * @param extension the extension containing the configuration, including auto-update settings and update delay
 	 */
 	private void updateUrl(Logger logger, String url, Project project, UsesExtension extension) {
-		url = processUrl(url);
+		url = processActionUrl(url);
 		File file = getUrlFile(url);
 		if (shouldDownloadFile(file, extension, logger)) {
 			downloadFile(logger, url, file);
@@ -131,11 +131,30 @@ public class Main implements org.gradle.api.Plugin<Project> {
      *         replaced with "_" and the third part will have "." replaced with "_", followed by ".gradle".
      *         If the URL does not match the expected pattern, it is returned unchanged.
      */
-    private String processUrl(String url) {
+    private String processActionUrl(String url) {
         String[] split = url.split(":");
         if (split.length == 3) {
             String version = split[split.length-1];
             url = split[0] + ":" + split[1].replace(".gradle", "_") + version.replace(".", "_") + ".gradle";
+        }
+        return url;
+    }
+
+    /**
+     * Processes the given URL by transforming it into a specific format if it matches a certain pattern.
+     * If the URL contains three parts separated by colons, it modifies the second and third parts
+     * to replace certain characters and returns the modified URL.
+     *
+     * @param url the original URL to be processed. It is expected to be in the format of "part1:part2:part3".
+     * @return the processed URL. If the original URL contains three parts, the second part will have ".gradle"
+     *         replaced with "_" and the third part will have "." replaced with "_", followed by ".gradle".
+     *         If the URL does not match the expected pattern, it is returned unchanged.
+     */
+    private String processPresetUrl(String url) {
+        String[] split = url.split(":");
+        if (split.length == 3) {
+            String version = split[split.length-1];
+            url = split[0] + ":" + split[1].replace(".preset", "_") + version.replace(".", "_") + ".preset";
         }
         return url;
     }
@@ -150,20 +169,35 @@ public class Main implements org.gradle.api.Plugin<Project> {
      */
     public void processPresets(Logger logger, Project project, UsesExtension extension) {
         if (extension.getPresets() != null && !extension.getPresets().isEmpty()) {
-            extension.getPresets().forEach(url -> {
-                try {
-                    File preset = getUrlFile(processUrl(url));
-                    if (shouldDownloadFile(preset, extension, logger)) {
-                        downloadFile(logger, url, preset);
-                        List<String> lines = Files.readLines(preset, Charset.defaultCharset());
-                        for (String line : lines) {
-                            updateUrl(logger, line, project, extension);
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+            extension.getPresets().forEach(url -> processPreset(logger, project, extension, url));
+        }
+    }
+    
+        /**
+     * Processes a preset file specified by the given URL. This method checks if the preset file needs to be
+     * downloaded based on the configuration in the extension. If the file is downloaded, it reads the file
+     * line by line and updates each URL found within the file.
+     *
+     * @param logger    The logger used to log messages during the process.
+     * @param project   The Gradle project to which the preset is applied.
+     * @param extension The extension containing the configuration, including auto-update settings and update delay.
+     * @param url       The URL of the preset file to be processed.
+     */
+    public void processPreset(Logger logger, Project project, UsesExtension extension, String url) {
+        try {
+            File preset = getUrlFile(processPresetUrl(url));
+            if (shouldDownloadFile(preset, extension, logger)) {
+                downloadFile(logger, url, preset);
+                List<String> lines = Files.readLines(preset, Charset.defaultCharset());
+                for (String line : lines) {
+                    if (line.contains(".gradle"))
+                        updateUrl(logger, line, project, extension);
+                    else if (line.contains(".preset"))
+                        processPreset(logger, project, extension, line);
                 }
-            });
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

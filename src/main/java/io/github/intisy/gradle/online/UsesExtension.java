@@ -8,7 +8,7 @@ import java.util.List;
  */
 @SuppressWarnings("unused")
 public class UsesExtension {
-    private List<String> urls;
+    private List<String> actions;
     private List<String> presets;
     private boolean debug;
     private boolean autoUpdate;
@@ -73,17 +73,17 @@ public class UsesExtension {
      *
      * @return A List of Strings containing the URLs.
      */
-    public List<String> getUrls() {
-        return urls;
+    public List<String> getActions() {
+        return actions;
     }
 
     /**
      * Sets the list of URLs.
      *
-     * @param urls A List of Strings containing the URLs to be set.
+     * @param actions A List of Strings containing the URLs to be set.
      */
-    public void setUrls(List<String> urls) {
-        this.urls = urls;
+    public void setActions(List<String> actions) {
+        this.actions = actions;
     }
 
     /**
