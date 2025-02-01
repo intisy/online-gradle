@@ -152,7 +152,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
         if (extension.getPresets() != null && !extension.getPresets().isEmpty()) {
             extension.getPresets().forEach(url -> {
                 try {
-                    File preset = getUrlFile(url);
+                    File preset = getUrlFile(processUrl(url));
                     if (shouldDownloadFile(preset, extension, logger)) {
                         downloadFile(logger, url, preset);
                         List<String> lines = Files.readLines(preset, Charset.defaultCharset());
