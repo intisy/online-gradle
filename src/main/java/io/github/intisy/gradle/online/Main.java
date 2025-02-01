@@ -263,9 +263,9 @@ public class Main implements org.gradle.api.Plugin<Project> {
                 logger.debug("Downloaded " + url + " to " + file);
         } catch (IOException e) {
             if (file.exists()) {
-                throw new RuntimeException("Could not get the file, using existing one");
+                throw new RuntimeException("Could not get the file, using existing one: " + url);
             } else
-                throw new RuntimeException("Could not download file");
+                throw new RuntimeException("Could not download file: " + url);
         }
     }
 }
