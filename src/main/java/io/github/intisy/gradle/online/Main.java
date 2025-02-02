@@ -101,8 +101,7 @@ public class Main implements org.gradle.api.Plugin<Project> {
      *         If auto-update is disabled, the file will always be downloaded.
      */
     public boolean shouldDownloadFile(File file, UsesExtension extension, Logger logger) {
-        boolean downloadFile = !file.exists();
-        if (extension.isAutoUpdate()) {
+        if (file.exists() && extension.isAutoUpdate()) {
             if (extension.getUpdateDelay() > 0) {
                 try {
                     BasicFileAttributes attributes = java.nio.file.Files.readAttributes(file.toPath(), BasicFileAttributes.class);
@@ -110,15 +109,13 @@ public class Main implements org.gradle.api.Plugin<Project> {
                     Instant now = Instant.now();
                     long differenceInSeconds = Duration.between(creationTime, now).getSeconds();
                     logger.debug("Difference in seconds between creation time and now: " + differenceInSeconds + " seconds");
-                    downloadFile = differenceInSeconds >= extension.getUpdateDelay();
+                    return differenceInSeconds >= extension.getUpdateDelay();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-            } else {
-                downloadFile = true;
             }
         }
-        return downloadFile;
+        return true;
     }
 
     /**
