@@ -9,6 +9,7 @@ import org.gradle.api.logging.LogLevel;
 @SuppressWarnings("unused")
 public class Logger {
     private final UsesExtension extension;
+    private final org.gradle.api.logging.Logger logger;
     private final Project project;
     /**
      * Constructs a new instance of Logger using the provided {@link Project} instance.
@@ -36,43 +37,54 @@ public class Logger {
         }
         this.extension = extension;
         this.project = project;
+        this.logger = project.getLogger();
     }
+
     /**
-     * Logs a message at the lifecycle level.
-     *
-     * @param message The message to be logged.
+     * Logs a standard lifecycle message, visible in the default Gradle output.
+     * @param message The message to log.
      */
     public void log(String message) {
-        project.getLogger().lifecycle(message);
+        logger.lifecycle(message);
     }
 
     /**
      * Logs an error message.
-     *
-     * @param message The error message to be logged.
+     * @param message The message to log.
      */
     public void error(String message) {
-        project.getLogger().error(message);
+        logger.error(message);
     }
 
     /**
-     * Logs a debug message if the debug mode is enabled or the log level is INFO or DEBUG.
-     *
-     * @param message The debug message to be logged.
+     * Logs an error message along with an exception's stack trace.
+     * @param message The message to log.
+     * @param throwable The exception to log.
+     */
+    public void error(String message, Throwable throwable) {
+        logger.error(message, throwable);
+    }
+
+    /**
+     * Logs a debug message.
+     * <p>
+     * This message will be shown at the LIFECYCLE level (visible by default) only if
+     * the user sets `github.debug = true` in their build script, providing an easy
+     * way to enable verbose logging for this plugin specifically.
+     * @param message The message to log.
      */
     public void debug(String message) {
-        LogLevel logLevel = project.getGradle().getStartParameter().getLogLevel();
-        if (extension.isDebug() || logLevel.equals(LogLevel.INFO) || logLevel.equals(LogLevel.DEBUG)) {
-            project.getLogger().lifecycle(message);
+        LogLevel logLevel;
+        if (extension.isDebug() || project != null && ((logLevel = project.getGradle().getStartParameter().getLogLevel()).equals(LogLevel.INFO) || logLevel.equals(LogLevel.DEBUG))) {
+            logger.lifecycle(message);
         }
     }
 
     /**
      * Logs a warning message.
-     *
-     * @param message The warning message to be logged.
+     * @param message The message to log.
      */
     public void warn(String message) {
-        project.getLogger().warn(message);
+        logger.warn(message);
     }
 }
