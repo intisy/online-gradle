@@ -185,13 +185,13 @@ public class Main implements org.gradle.api.Plugin<Project> {
             File preset = getUrlFile(url);
             if (shouldDownloadFile(preset, extension, logger)) {
                 downloadFile(logger, url, preset);
-                List<String> lines = Files.readLines(preset, Charset.defaultCharset());
-                for (String line : lines) {
-                    if (line.contains(".gradle"))
-                        updateUrl(logger, line, project, extension);
-                    else if (line.contains(".preset"))
-                        processPreset(logger, project, extension, line);
-                }
+            }
+            List<String> lines = Files.readLines(preset, Charset.defaultCharset());
+            for (String line : lines) {
+                if (line.contains(".gradle"))
+                    updateUrl(logger, line, project, extension);
+                else if (line.contains(".preset"))
+                    processPreset(logger, project, extension, line);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
