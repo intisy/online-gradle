@@ -25,6 +25,5 @@ jobs:
       gradle_args: --no-daemon
       release_assets: 'build/libs/*'
     secrets:
-      envPAT: ${{ secrets.PAT }}
       envKEY: ${{ secrets.KEY }}
       envSECRET: ${{ secrets.SECRET }}
